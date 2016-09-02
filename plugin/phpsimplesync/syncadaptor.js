@@ -1,8 +1,8 @@
 /*\
-title: $:/plugins/tiddlywiki/tiddlyweb/tiddlywebadaptor.js
+title: $:/plugins/phpsimplesync/syncadaptor.js
 type: application/javascript
 module-type: syncadaptor
-A sync adaptor module for synchronising with TiddlyWeb compatible servers
+A sync adaptor module for synchronising with php scripts and .Tid files.
 \*/
 (function(){
 
