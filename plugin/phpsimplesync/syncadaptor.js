@@ -10,9 +10,6 @@ A sync adaptor module for synchronising with php scripts and .Tid files.
 /*global $tw: false */
 "use strict";
 
-var CONFIG_HOST_TIDDLER = "$:/config/tiddlyweb/host",
-	DEFAULT_HOST_TIDDLER = "$protocol$//$host$/";
-
 function phpsimplesync(options) {
 	this.logger = new $tw.utils.Logger("TiddlyWebAdaptor");
 }
