@@ -13,125 +13,14 @@ A sync adaptor module for synchronising with php scripts and .Tid files.
 var CONFIG_HOST_TIDDLER = "$:/config/tiddlyweb/host",
 	DEFAULT_HOST_TIDDLER = "$protocol$//$host$/";
 
-function TiddlyWebAdaptor(options) {
-	this.wiki = options.wiki;
-	this.host = this.getHost();
-	this.recipe = undefined;
-	this.hasStatus = false;
+function phpsimplesync(options) {
 	this.logger = new $tw.utils.Logger("TiddlyWebAdaptor");
 }
 
 TiddlyWebAdaptor.prototype.isReady = function() {
-	return this.hasStatus;
+	return true;
 };
 
-TiddlyWebAdaptor.prototype.getHost = function() {
-	var text = this.wiki.getTiddlerText(CONFIG_HOST_TIDDLER,DEFAULT_HOST_TIDDLER),
-		substitutions = [
-			{name: "protocol", value: document.location.protocol},
-			{name: "host", value: document.location.host}
-		];
-	for(var t=0; t<substitutions.length; t++) {
-		var s = substitutions[t];
-		text = $tw.utils.replaceString(text,new RegExp("\\$" + s.name + "\\$","mg"),s.value);
-	}
-	return text;
-};
-
-TiddlyWebAdaptor.prototype.getTiddlerInfo = function(tiddler) {
-	return {
-		bag: tiddler.fields.bag
-	};
-};
-
-/*
-Get the current status of the TiddlyWeb connection
-*/
-TiddlyWebAdaptor.prototype.getStatus = function(callback) {
-	// Get status
-	var self = this;
-	this.logger.log("Getting status");
-	$tw.utils.httpRequest({
-		url: this.host + "status",
-		callback: function(err,data) {
-			self.hasStatus = true;
-			if(err) {
-				return callback(err);
-			}
-			// Decode the status JSON
-			var json = null,
-				isLoggedIn = false;
-			try {
-				json = JSON.parse(data);
-			} catch (e) {
-			}
-			if(json) {
-				self.logger.log("Status:",data);
-				// Record the recipe
-				if(json.space) {
-					self.recipe = json.space.recipe;
-				}
-				// Check if we're logged in
-				isLoggedIn = json.username !== "GUEST";
-			}
-			// Invoke the callback if present
-			if(callback) {
-				callback(null,isLoggedIn,json.username);
-			}
-		}
-	});
-};
-
-/*
-Attempt to login and invoke the callback(err)
-*/
-TiddlyWebAdaptor.prototype.login = function(username,password,callback) {
-	var options = {
-		url: this.host + "challenge/tiddlywebplugins.tiddlyspace.cookie_form",
-		type: "POST",
-		data: {
-			user: username,
-			password: password,
-			tiddlyweb_redirect: "/status" // workaround to marginalize automatic subsequent GET
-		},
-		callback: function(err) {
-			callback(err);
-		}
-	};
-	this.logger.log("Logging in:",options);
-	$tw.utils.httpRequest(options);
-};
-
-/*
-*/
-TiddlyWebAdaptor.prototype.logout = function(callback) {
-	var options = {
-		url: this.host + "logout",
-		type: "POST",
-		data: {
-			csrf_token: this.getCsrfToken(),
-			tiddlyweb_redirect: "/status" // workaround to marginalize automatic subsequent GET
-		},
-		callback: function(err,data) {
-			callback(err);
-		}
-	};
-	this.logger.log("Logging out:",options);
-	$tw.utils.httpRequest(options);
-};
-
-/*
-Retrieve the CSRF token from its cookie
-*/
-TiddlyWebAdaptor.prototype.getCsrfToken = function() {
-	var regex = /^(?:.*; )?csrf_token=([^(;|$)]*)(?:;|$)/,
-		match = regex.exec(document.cookie),
-		csrf = null;
-	if (match && (match.length === 2)) {
-		csrf = match[1];
-	}
-	return csrf;
-};
 
 /*
 Get an array of skinny tiddler fields from the server
@@ -139,7 +28,7 @@ Get an array of skinny tiddler fields from the server
 TiddlyWebAdaptor.prototype.getSkinnyTiddlers = function(callback) {
 	var self = this;
 	$tw.utils.httpRequest({
-		url: this.host + "recipes/" + this.recipe + "/tiddlers.json",
+		url: "getSkinnyTiddlers.php",
 		callback: function(err,data) {
 			// Check for errors
 			if(err) {
@@ -162,7 +51,7 @@ Save a tiddler and invoke the callback with (err,adaptorInfo,revision)
 TiddlyWebAdaptor.prototype.saveTiddler = function(tiddler,callback) {
 	var self = this;
 	$tw.utils.httpRequest({
-		url: this.host + "recipes/" + encodeURIComponent(this.recipe) + "/tiddlers/" + encodeURIComponent(tiddler.fields.title),
+		url:  "saveTiddler.php?tiddler="+ encodeURIComponent(title),
 		type: "PUT",
 		headers: {
 			"Content-type": "application/json"
@@ -172,12 +61,9 @@ TiddlyWebAdaptor.prototype.saveTiddler = function(tiddler,callback) {
 			if(err) {
 				return callback(err);
 			}
-			// Save the details of the new revision of the tiddler
-			var etagInfo = self.parseEtag(request.getResponseHeader("Etag"));
+
 			// Invoke the callback
-			callback(null,{
-				bag: etagInfo.bag
-			}, etagInfo.revision);
+			callback(null);
 		}
 	});
 };
@@ -188,7 +74,7 @@ Load a tiddler and invoke the callback with (err,tiddlerFields)
 TiddlyWebAdaptor.prototype.loadTiddler = function(title,callback) {
 	var self = this;
 	$tw.utils.httpRequest({
-		url: this.host + "recipes/" + encodeURIComponent(this.recipe) + "/tiddlers/" + encodeURIComponent(title),
+		url: "loadTiddler?tiddler=" + encodeURIComponent(title),
 		callback: function(err,data,request) {
 			if(err) {
 				return callback(err);
@@ -205,15 +91,11 @@ options include:
 tiddlerInfo: the syncer's tiddlerInfo for this tiddler
 */
 TiddlyWebAdaptor.prototype.deleteTiddler = function(title,callback,options) {
-	var self = this,
-		bag = options.tiddlerInfo.adaptorInfo.bag;
-	// If we don't have a bag it means that the tiddler hasn't been seen by the server, so we don't need to delete it
-	if(!bag) {
-		return callback(null);
-	}
+	var self = this;
+
 	// Issue HTTP request to delete the tiddler
 	$tw.utils.httpRequest({
-		url: this.host + "bags/" + encodeURIComponent(bag) + "/tiddlers/" + encodeURIComponent(title),
+		url: "deleteTiddler.php?tiddler=" + encodeURIComponent(title),
 		type: "DELETE",
 		callback: function(err,data,request) {
 			if(err) {
@@ -283,34 +165,10 @@ TiddlyWebAdaptor.prototype.convertTiddlerFromTiddlyWebFormat = function(tiddlerF
 	return result;
 };
 
-/*
-Split a TiddlyWeb Etag into its constituent parts. For example:
-```
-"system-images_public/unsyncedIcon/946151:9f11c278ccde3a3149f339f4a1db80dd4369fc04"
-```
-Note that the value includes the opening and closing double quotes.
-The parts are:
-```
-<bag>/<title>/<revision>:<hash>
-```
-*/
-TiddlyWebAdaptor.prototype.parseEtag = function(etag) {
-	var firstSlash = etag.indexOf("/"),
-		lastSlash = etag.lastIndexOf("/"),
-		colon = etag.lastIndexOf(":");
-	if(firstSlash === -1 || lastSlash === -1 || colon === -1) {
-		return null;
-	} else {
-		return {
-			bag: decodeURIComponent(etag.substring(1,firstSlash)),
-			title: decodeURIComponent(etag.substring(firstSlash + 1,lastSlash)),
-			revision: etag.substring(lastSlash + 1,colon)
-		};
-	}
-};
 
-if($tw.browser && document.location.protocol.substr(0,4) === "http" ) {
+
+
 	exports.adaptorClass = TiddlyWebAdaptor;
-}
+
 
 })();
