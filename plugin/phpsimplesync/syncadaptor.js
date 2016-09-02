@@ -12,6 +12,7 @@ A sync adaptor module for synchronising with php scripts and .Tid files.
 
 function phpsimplesync(options) {
 	this.logger = new $tw.utils.Logger("phpsimplesync");
+       alert("phpsimplesync");
 }
 
 phpsimplesync.prototype.isReady = function() {
@@ -19,8 +20,9 @@ phpsimplesync.prototype.isReady = function() {
 };
 
 phpsimplesync.prototype.getTiddlerInfo = function(tiddler) {
-	return null;
+	return {title: tiddler.title} ;
 };
+
 
 /*
 Get an array of skinny tiddler fields from the server
@@ -36,9 +38,13 @@ phpsimplesync.prototype.getSkinnyTiddlers = function(callback) {
 			}
 			// Process the tiddlers to make sure the revision is a string
 			var tiddlers = JSON.parse(data);
+
 			for(var t=0; t<tiddlers.length; t++) {
 				tiddlers[t] = self.convertTiddlerFromTiddlyWebFormat(tiddlers[t]);
+                                
 			}
+
+                          
 			// Invoke the callback with the skinny tiddlers
 			callback(null,tiddlers);
 		}
@@ -51,7 +57,7 @@ Save a tiddler and invoke the callback with (err,adaptorInfo,revision)
 phpsimplesync.prototype.saveTiddler = function(tiddler,callback) {
 	var self = this;
 	$tw.utils.httpRequest({
-		url:  "saveTiddler.php?tiddler="+ encodeURIComponent(title),
+		url:  "saveTiddler.php?tiddler="+ encodeURIComponent(tiddler.title),
 		type: "PUT",
 		headers: {
 			"Content-type": "application/json"
@@ -79,6 +85,8 @@ phpsimplesync.prototype.loadTiddler = function(title,callback) {
 			if(err) {
 				return callback(err);
 			}
+
+                              alert('load'); 
 			// Invoke the callback
 			callback(null,self.convertTiddlerFromTiddlyWebFormat(JSON.parse(data)));
 		}
@@ -164,8 +172,6 @@ phpsimplesync.prototype.convertTiddlerFromTiddlyWebFormat = function(tiddlerFiel
 	}
 	return result;
 };
-
-
 
 
 	exports.adaptorClass = phpsimplesync;

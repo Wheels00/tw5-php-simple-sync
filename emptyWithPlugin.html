@@ -7800,12 +7800,12 @@ Error message and password prompt
 <div status="complete" title="$:/Import">
 <pre>The following tiddlers were imported:
 
-# [[syncadaptor.js]]</pre>
+# [[$:/plugins/phpsimplesync/syncadaptor.js]]</pre>
 </div>
 <div title="$:/isEncrypted">
 <pre>no</pre>
 </div>
-<div created="20160902065959387" modified="20160902070859713" module-type="syncadaptor" plugin-type="plugin" title="$:/plugins/phpsimplesync/syncadaptor.js" type="application/javascript">
+<div created="20160902065959387" modified="20160902093044504" module-type="syncadaptor" plugin-type="plugin" title="$:/plugins/phpsimplesync/syncadaptor.js" type="application/javascript">
 <pre>/*\
 title: $:/plugins/phpsimplesync/syncadaptor.js
 type: application/javascript
@@ -7828,7 +7828,7 @@ phpsimplesync.prototype.isReady = function() {
 };
 
 phpsimplesync.prototype.getTiddlerInfo = function(tiddler) {
-	return null;
+	return {title: tiddler.title} ;
 };
 
 
@@ -7846,9 +7846,13 @@ phpsimplesync.prototype.getSkinnyTiddlers = function(callback) {
 			}
 			// Process the tiddlers to make sure the revision is a string
 			var tiddlers = JSON.parse(data);
+
 			for(var t=0; t&lt;tiddlers.length; t++) {
 				tiddlers[t] = self.convertTiddlerFromTiddlyWebFormat(tiddlers[t]);
+                                
 			}
+
+                          
 			// Invoke the callback with the skinny tiddlers
 			callback(null,tiddlers);
 		}
@@ -7861,7 +7865,7 @@ Save a tiddler and invoke the callback with (err,adaptorInfo,revision)
 phpsimplesync.prototype.saveTiddler = function(tiddler,callback) {
 	var self = this;
 	$tw.utils.httpRequest({
-		url:  &quot;saveTiddler.php?tiddler=&quot;+ encodeURIComponent(title),
+		url:  &quot;saveTiddler.php?tiddler=&quot;+ encodeURIComponent(tiddler.title),
 		type: &quot;PUT&quot;,
 		headers: {
 			&quot;Content-type&quot;: &quot;application/json&quot;
@@ -7889,6 +7893,8 @@ phpsimplesync.prototype.loadTiddler = function(title,callback) {
 			if(err) {
 				return callback(err);
 			}
+
+                              alert('load'); 
 			// Invoke the callback
 			callback(null,self.convertTiddlerFromTiddlyWebFormat(JSON.parse(data)));
 		}
@@ -7988,7 +7994,7 @@ phpsimplesync.prototype.convertTiddlerFromTiddlyWebFormat = function(tiddlerFiel
 <div created="20160902070341639" modified="20160902070341639" title="$:/state/tab-1749438307">
 <pre>$:/core/ui/ControlPanel/Plugins</pre>
 </div>
-<div list="$:/ControlPanel $:/core $:/plugins/phpsimplesync/syncadaptor.js GettingStarted" title="$:/StoryList">
+<div list="$:/Import GettingStarted" title="$:/StoryList">
 <pre></pre>
 </div>
 <div plugin-type="info" title="$:/temp/info-plugin" type="application/json">
