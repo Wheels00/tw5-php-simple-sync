@@ -168,7 +168,7 @@ TiddlyWebAdaptor.prototype.convertTiddlerFromTiddlyWebFormat = function(tiddlerF
 
 
 
-	exports.adaptorClass = TiddlyWebAdaptor;
+	exports.adaptorClass = phpsimplesync;
 
 
 })();
