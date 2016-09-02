@@ -11,10 +11,10 @@ A sync adaptor module for synchronising with php scripts and .Tid files.
 "use strict";
 
 function phpsimplesync(options) {
-	this.logger = new $tw.utils.Logger("TiddlyWebAdaptor");
+	this.logger = new $tw.utils.Logger("phpsimplesync");
 }
 
-TiddlyWebAdaptor.prototype.isReady = function() {
+phpsimplesync.prototype.isReady = function() {
 	return true;
 };
 
@@ -22,7 +22,7 @@ TiddlyWebAdaptor.prototype.isReady = function() {
 /*
 Get an array of skinny tiddler fields from the server
 */
-TiddlyWebAdaptor.prototype.getSkinnyTiddlers = function(callback) {
+phpsimplesync.prototype.getSkinnyTiddlers = function(callback) {
 	var self = this;
 	$tw.utils.httpRequest({
 		url: "getSkinnyTiddlers.php",
@@ -45,7 +45,7 @@ TiddlyWebAdaptor.prototype.getSkinnyTiddlers = function(callback) {
 /*
 Save a tiddler and invoke the callback with (err,adaptorInfo,revision)
 */
-TiddlyWebAdaptor.prototype.saveTiddler = function(tiddler,callback) {
+phpsimplesync.prototype.saveTiddler = function(tiddler,callback) {
 	var self = this;
 	$tw.utils.httpRequest({
 		url:  "saveTiddler.php?tiddler="+ encodeURIComponent(title),
@@ -68,7 +68,7 @@ TiddlyWebAdaptor.prototype.saveTiddler = function(tiddler,callback) {
 /*
 Load a tiddler and invoke the callback with (err,tiddlerFields)
 */
-TiddlyWebAdaptor.prototype.loadTiddler = function(title,callback) {
+phpsimplesync.prototype.loadTiddler = function(title,callback) {
 	var self = this;
 	$tw.utils.httpRequest({
 		url: "loadTiddler?tiddler=" + encodeURIComponent(title),
@@ -87,7 +87,7 @@ Delete a tiddler and invoke the callback with (err)
 options include:
 tiddlerInfo: the syncer's tiddlerInfo for this tiddler
 */
-TiddlyWebAdaptor.prototype.deleteTiddler = function(title,callback,options) {
+phpsimplesync.prototype.deleteTiddler = function(title,callback,options) {
 	var self = this;
 
 	// Issue HTTP request to delete the tiddler
@@ -107,7 +107,7 @@ TiddlyWebAdaptor.prototype.deleteTiddler = function(title,callback,options) {
 /*
 Convert a tiddler to a field set suitable for PUTting to TiddlyWeb
 */
-TiddlyWebAdaptor.prototype.convertTiddlerToTiddlyWebFormat = function(tiddler) {
+phpsimplesync.prototype.convertTiddlerToTiddlyWebFormat = function(tiddler) {
 	var result = {},
 		knownFields = [
 			"bag", "created", "creator", "modified", "modifier", "permissions", "recipe", "revision", "tags", "text", "title", "type", "uri"
@@ -136,7 +136,7 @@ TiddlyWebAdaptor.prototype.convertTiddlerToTiddlyWebFormat = function(tiddler) {
 /*
 Convert a field set in TiddlyWeb format into ordinary TiddlyWiki5 format
 */
-TiddlyWebAdaptor.prototype.convertTiddlerFromTiddlyWebFormat = function(tiddlerFields) {
+phpsimplesync.prototype.convertTiddlerFromTiddlyWebFormat = function(tiddlerFields) {
 	var self = this,
 		result = {};
 	// Transfer the fields, pulling down the `fields` hashmap
