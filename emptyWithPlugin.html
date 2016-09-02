@@ -44,7 +44,7 @@ ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF S
 DAMAGE.
 " />
 <link id="faviconLink" rel="shortcut icon" href="favicon.ico">
-<title>TiddlyWiki — a non-linear personal web notebook</title>
+<title>Demo phpsimplesync — a non-linear personal web notebook</title>
 <!--~~ This is a Tiddlywiki file. The points of interest in the file are marked with this pattern ~~--><!--~~ Raw markup ~~-->
 
 </head>
@@ -117,7 +117,30 @@ Error message and password prompt
 <div id="splashArea">
 
 
-<div class=" tc-reveal" hidden="true"></div>
+<p>This <a class="tc-tiddlylink-external" href="http://tiddlywiki.com" rel="noopener noreferrer" target="_blank">TiddlyWiki</a> contains the following tiddlers:</p><p><ul>
+
+<li>$:/core</li>
+
+<li>$:/Import</li>
+
+<li>$:/isEncrypted</li>
+
+<li>$:/plugins/phpsimplesync/syncadaptor.js</li>
+
+<li>$:/SiteTitle</li>
+
+<li>$:/state/tab-1749438307</li>
+
+<li>$:/StoryList</li>
+
+<li>$:/temp/info-plugin</li>
+
+<li>$:/themes/tiddlywiki/snowwhite</li>
+
+<li>$:/themes/tiddlywiki/vanilla</li>
+
+</ul>
+</p>
 
 
 
@@ -7774,8 +7797,213 @@ Error message and password prompt
     }
 }</pre>
 </div>
+<div status="complete" title="$:/Import">
+<pre>The following tiddlers were imported:
+
+# [[syncadaptor.js]]</pre>
+</div>
 <div title="$:/isEncrypted">
 <pre>no</pre>
+</div>
+<div created="20160902065959387" modified="20160902070859713" module-type="syncadaptor" plugin-type="plugin" title="$:/plugins/phpsimplesync/syncadaptor.js" type="application/javascript">
+<pre>/*\
+title: $:/plugins/phpsimplesync/syncadaptor.js
+type: application/javascript
+module-type: syncadaptor
+A sync adaptor module for synchronising with php scripts and .Tid files.
+\*/
+(function(){
+
+/*jslint node: true, browser: true */
+/*global $tw: false */
+&quot;use strict&quot;;
+
+function phpsimplesync(options) {
+	this.logger = new $tw.utils.Logger(&quot;phpsimplesync&quot;);
+       alert(&quot;phpsimplesync&quot;);
+}
+
+phpsimplesync.prototype.isReady = function() {
+	return true;
+};
+
+phpsimplesync.prototype.getTiddlerInfo = function(tiddler) {
+	return null;
+};
+
+
+/*
+Get an array of skinny tiddler fields from the server
+*/
+phpsimplesync.prototype.getSkinnyTiddlers = function(callback) {
+	var self = this;
+	$tw.utils.httpRequest({
+		url: &quot;getSkinnyTiddlers.php&quot;,
+		callback: function(err,data) {
+			// Check for errors
+			if(err) {
+				return callback(err);
+			}
+			// Process the tiddlers to make sure the revision is a string
+			var tiddlers = JSON.parse(data);
+			for(var t=0; t&lt;tiddlers.length; t++) {
+				tiddlers[t] = self.convertTiddlerFromTiddlyWebFormat(tiddlers[t]);
+			}
+			// Invoke the callback with the skinny tiddlers
+			callback(null,tiddlers);
+		}
+	});
+};
+
+/*
+Save a tiddler and invoke the callback with (err,adaptorInfo,revision)
+*/
+phpsimplesync.prototype.saveTiddler = function(tiddler,callback) {
+	var self = this;
+	$tw.utils.httpRequest({
+		url:  &quot;saveTiddler.php?tiddler=&quot;+ encodeURIComponent(title),
+		type: &quot;PUT&quot;,
+		headers: {
+			&quot;Content-type&quot;: &quot;application/json&quot;
+		},
+		data: this.convertTiddlerToTiddlyWebFormat(tiddler),
+		callback: function(err,data,request) {
+			if(err) {
+				return callback(err);
+			}
+
+			// Invoke the callback
+			callback(null);
+		}
+	});
+};
+
+/*
+Load a tiddler and invoke the callback with (err,tiddlerFields)
+*/
+phpsimplesync.prototype.loadTiddler = function(title,callback) {
+	var self = this;
+	$tw.utils.httpRequest({
+		url: &quot;loadTiddler?tiddler=&quot; + encodeURIComponent(title),
+		callback: function(err,data,request) {
+			if(err) {
+				return callback(err);
+			}
+			// Invoke the callback
+			callback(null,self.convertTiddlerFromTiddlyWebFormat(JSON.parse(data)));
+		}
+	});
+};
+
+/*
+Delete a tiddler and invoke the callback with (err)
+options include:
+tiddlerInfo: the syncer's tiddlerInfo for this tiddler
+*/
+phpsimplesync.prototype.deleteTiddler = function(title,callback,options) {
+	var self = this;
+
+	// Issue HTTP request to delete the tiddler
+	$tw.utils.httpRequest({
+		url: &quot;deleteTiddler.php?tiddler=&quot; + encodeURIComponent(title),
+		type: &quot;DELETE&quot;,
+		callback: function(err,data,request) {
+			if(err) {
+				return callback(err);
+			}
+			// Invoke the callback
+			callback(null);
+		}
+	});
+};
+
+/*
+Convert a tiddler to a field set suitable for PUTting to TiddlyWeb
+*/
+phpsimplesync.prototype.convertTiddlerToTiddlyWebFormat = function(tiddler) {
+	var result = {},
+		knownFields = [
+			&quot;bag&quot;, &quot;created&quot;, &quot;creator&quot;, &quot;modified&quot;, &quot;modifier&quot;, &quot;permissions&quot;, &quot;recipe&quot;, &quot;revision&quot;, &quot;tags&quot;, &quot;text&quot;, &quot;title&quot;, &quot;type&quot;, &quot;uri&quot;
+		];
+	if(tiddler) {
+		$tw.utils.each(tiddler.fields,function(fieldValue,fieldName) {
+			var fieldString = fieldName === &quot;tags&quot; ?
+								tiddler.fields.tags :
+								tiddler.getFieldString(fieldName); // Tags must be passed as an array, not a string
+
+			if(knownFields.indexOf(fieldName) !== -1) {
+				// If it's a known field, just copy it across
+				result[fieldName] = fieldString;
+			} else {
+				// If it's unknown, put it in the &quot;fields&quot; field
+				result.fields = result.fields || {};
+				result.fields[fieldName] = fieldString;
+			}
+		});
+	}
+	// Default the content type
+	result.type = result.type || &quot;text/vnd.tiddlywiki&quot;;
+	return JSON.stringify(result,null,$tw.config.preferences.jsonSpaces);
+};
+
+/*
+Convert a field set in TiddlyWeb format into ordinary TiddlyWiki5 format
+*/
+phpsimplesync.prototype.convertTiddlerFromTiddlyWebFormat = function(tiddlerFields) {
+	var self = this,
+		result = {};
+	// Transfer the fields, pulling down the `fields` hashmap
+	$tw.utils.each(tiddlerFields,function(element,title,object) {
+		if(title === &quot;fields&quot;) {
+			$tw.utils.each(element,function(element,subTitle,object) {
+				result[subTitle] = element;
+			});
+		} else {
+			result[title] = tiddlerFields[title];
+		}
+	});
+	// Make sure the revision is expressed as a string
+	if(typeof result.revision === &quot;number&quot;) {
+		result.revision = result.revision.toString();
+	}
+	// Some unholy freaking of content types
+	if(result.type === &quot;text/javascript&quot;) {
+		result.type = &quot;application/javascript&quot;;
+	} else if(!result.type || result.type === &quot;None&quot;) {
+		result.type = &quot;text/x-tiddlywiki&quot;;
+	}
+	return result;
+};
+
+
+	exports.adaptorClass = phpsimplesync;
+
+
+})();
+</pre>
+</div>
+<div created="20160902065737757" modified="20160902065755268" title="$:/SiteTitle">
+<pre>Demo phpsimplesync</pre>
+</div>
+<div created="20160902070341639" modified="20160902070341639" title="$:/state/tab-1749438307">
+<pre>$:/core/ui/ControlPanel/Plugins</pre>
+</div>
+<div list="$:/ControlPanel $:/core $:/plugins/phpsimplesync/syncadaptor.js GettingStarted" title="$:/StoryList">
+<pre></pre>
+</div>
+<div plugin-type="info" title="$:/temp/info-plugin" type="application/json">
+<pre>{
+    &quot;tiddlers&quot;: {
+        &quot;$:/info/browser&quot;: {
+            &quot;title&quot;: &quot;$:/info/browser&quot;,
+            &quot;text&quot;: &quot;yes&quot;
+        },
+        &quot;$:/info/node&quot;: {
+            &quot;title&quot;: &quot;$:/info/node&quot;,
+            &quot;text&quot;: &quot;no&quot;
+        }
+    }
+}</pre>
 </div>
 <div author="JeremyRuston" core-version="&gt;=5.0.0" dependents="$:/themes/tiddlywiki/vanilla" description="Emphasises individual tiddlers" name="Snow White" plugin-type="theme" title="$:/themes/tiddlywiki/snowwhite" type="application/json" version="5.1.13">
 <pre>{

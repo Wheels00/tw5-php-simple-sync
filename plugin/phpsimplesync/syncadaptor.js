@@ -18,6 +18,9 @@ phpsimplesync.prototype.isReady = function() {
 	return true;
 };
 
+phpsimplesync.prototype.getTiddlerInfo = function(tiddler) {
+	return null;
+};
 
 /*
 Get an array of skinny tiddler fields from the server
