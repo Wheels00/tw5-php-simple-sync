@@ -57,7 +57,6 @@ Save a tiddler and invoke the callback with (err,adaptorInfo,revision)
 phpsimplesync.prototype.saveTiddler = function(tiddler,callback) {
 	var self = this;
 	
-	if(tiddler.fields.title.substring(0, 1) != "$" && tiddler.fields.title.substring(0, 8) != "Draft of" ) {
 	
 	$tw.utils.httpRequest({
 		url:  "saveTiddler.php?tiddler="+ encodeURIComponent(tiddler.fields.title),
@@ -76,9 +75,7 @@ phpsimplesync.prototype.saveTiddler = function(tiddler,callback) {
 		}
 	});
 	
-	} else {
-	  callback(null);
-	} 
+
 };
 
 /*
@@ -93,7 +90,7 @@ phpsimplesync.prototype.loadTiddler = function(title,callback) {
 			if(err) {
 				return callback(err);
 			}
-             alert("loadTiddler.php?tiddler="+ encodeURIComponent(title)); 
+            
                               
 			// Invoke the callback
 			callback(null,self.convertTiddlerFromTiddlyWebFormat(JSON.parse(data)));
@@ -109,7 +106,7 @@ tiddlerInfo: the syncer's tiddlerInfo for this tiddler
 phpsimplesync.prototype.deleteTiddler = function(title,callback,options) {
 	var self = this;
 
-if(title.substring(0, 1) != "$" && title.substring(0, 8) != "Draft of" ) {
+
 
 	// Issue HTTP request to delete the tiddler
 	$tw.utils.httpRequest({
@@ -124,9 +121,7 @@ if(title.substring(0, 1) != "$" && title.substring(0, 8) != "Draft of" ) {
 		}
 	});
 	
-	} else {
-	  callback(null);
-	} 
+
 };
 
 /*
