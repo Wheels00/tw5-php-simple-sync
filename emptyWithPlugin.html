@@ -131,6 +131,10 @@ Error message and password prompt
 
 <li>$:/state/tab-1749438307</li>
 
+<li>$:/state/tab/moresidebar-401116514</li>
+
+<li>$:/state/tab/sidebar--1835078512</li>
+
 <li>$:/StoryList</li>
 
 <li>$:/temp/info-plugin</li>
@@ -7805,7 +7809,7 @@ Error message and password prompt
 <div title="$:/isEncrypted">
 <pre>no</pre>
 </div>
-<div created="20160902065959387" modified="20160902093044504" module-type="syncadaptor" plugin-type="plugin" title="$:/plugins/phpsimplesync/syncadaptor.js" type="application/javascript">
+<div created="20160902065959387" modified="20160903085228745" module-type="syncadaptor" plugin-type="plugin" title="$:/plugins/phpsimplesync/syncadaptor.js" type="application/javascript">
 <pre>/*\
 title: $:/plugins/phpsimplesync/syncadaptor.js
 type: application/javascript
@@ -7864,8 +7868,11 @@ Save a tiddler and invoke the callback with (err,adaptorInfo,revision)
 */
 phpsimplesync.prototype.saveTiddler = function(tiddler,callback) {
 	var self = this;
+	
+	if(tiddler.fields.title.substring(0, 0) != &quot;$&quot; &amp;&amp; tiddler.fields.title.substring(0, 7) != &quot;Draft of&quot; ) {
+	
 	$tw.utils.httpRequest({
-		url:  &quot;saveTiddler.php?tiddler=&quot;+ encodeURIComponent(tiddler.title),
+		url:  &quot;saveTiddler.php?tiddler=&quot;+ encodeURIComponent(tiddler.fields.title),
 		type: &quot;PUT&quot;,
 		headers: {
 			&quot;Content-type&quot;: &quot;application/json&quot;
@@ -7880,6 +7887,10 @@ phpsimplesync.prototype.saveTiddler = function(tiddler,callback) {
 			callback(null);
 		}
 	});
+	
+	} else {
+	  callback(null);
+	} 
 };
 
 /*
@@ -7887,14 +7898,15 @@ Load a tiddler and invoke the callback with (err,tiddlerFields)
 */
 phpsimplesync.prototype.loadTiddler = function(title,callback) {
 	var self = this;
+	
 	$tw.utils.httpRequest({
-		url: &quot;loadTiddler?tiddler=&quot; + encodeURIComponent(title),
+		url: &quot;loadTiddler.php?tiddler=&quot;+ encodeURIComponent(title),
 		callback: function(err,data,request) {
 			if(err) {
 				return callback(err);
 			}
 
-                              alert('load'); 
+                              
 			// Invoke the callback
 			callback(null,self.convertTiddlerFromTiddlyWebFormat(JSON.parse(data)));
 		}
@@ -7911,8 +7923,8 @@ phpsimplesync.prototype.deleteTiddler = function(title,callback,options) {
 
 	// Issue HTTP request to delete the tiddler
 	$tw.utils.httpRequest({
-		url: &quot;deleteTiddler.php?tiddler=&quot; + encodeURIComponent(title),
-		type: &quot;DELETE&quot;,
+		url: &quot;deleteTiddler.php?tiddler=&quot;+ encodeURIComponent(title),
+		
 		callback: function(err,data,request) {
 			if(err) {
 				return callback(err);
@@ -7994,7 +8006,13 @@ phpsimplesync.prototype.convertTiddlerFromTiddlyWebFormat = function(tiddlerFiel
 <div created="20160902070341639" modified="20160902070341639" title="$:/state/tab-1749438307">
 <pre>$:/core/ui/ControlPanel/Plugins</pre>
 </div>
-<div list="$:/Import GettingStarted" title="$:/StoryList">
+<div created="20160903085205390" modified="20160903085205390" title="$:/state/tab/moresidebar-401116514">
+<pre>$:/core/ui/MoreSideBar/System</pre>
+</div>
+<div created="20160903085203838" modified="20160903085203838" title="$:/state/tab/sidebar--1835078512">
+<pre>$:/core/ui/SideBar/More</pre>
+</div>
+<div list="$:/plugins/phpsimplesync/syncadaptor.js GettingStarted" title="$:/StoryList">
 <pre></pre>
 </div>
 <div plugin-type="info" title="$:/temp/info-plugin" type="application/json">

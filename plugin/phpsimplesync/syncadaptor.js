@@ -12,7 +12,7 @@ A sync adaptor module for synchronising with php scripts and .Tid files.
 
 function phpsimplesync(options) {
 	this.logger = new $tw.utils.Logger("phpsimplesync");
-       alert("phpsimplesync");
+
 }
 
 phpsimplesync.prototype.isReady = function() {
@@ -56,6 +56,9 @@ Save a tiddler and invoke the callback with (err,adaptorInfo,revision)
 */
 phpsimplesync.prototype.saveTiddler = function(tiddler,callback) {
 	var self = this;
+	
+	if(tiddler.fields.title.substring(0, 1) != "$" && tiddler.fields.title.substring(0, 8) != "Draft of" ) {
+	
 	$tw.utils.httpRequest({
 		url:  "saveTiddler.php?tiddler="+ encodeURIComponent(tiddler.fields.title),
 		type: "PUT",
@@ -72,6 +75,10 @@ phpsimplesync.prototype.saveTiddler = function(tiddler,callback) {
 			callback(null);
 		}
 	});
+	
+	} else {
+	  callback(null);
+	} 
 };
 
 /*
@@ -79,14 +86,15 @@ Load a tiddler and invoke the callback with (err,tiddlerFields)
 */
 phpsimplesync.prototype.loadTiddler = function(title,callback) {
 	var self = this;
+	
 	$tw.utils.httpRequest({
-		url: "loadTiddler?tiddler=" + encodeURIComponent(title),
+		url: "loadTiddler.php?tiddler="+ encodeURIComponent(title),
 		callback: function(err,data,request) {
 			if(err) {
 				return callback(err);
 			}
-
-                              alert('load'); 
+             alert("loadTiddler.php?tiddler="+ encodeURIComponent(title)); 
+                              
 			// Invoke the callback
 			callback(null,self.convertTiddlerFromTiddlyWebFormat(JSON.parse(data)));
 		}
@@ -101,10 +109,12 @@ tiddlerInfo: the syncer's tiddlerInfo for this tiddler
 phpsimplesync.prototype.deleteTiddler = function(title,callback,options) {
 	var self = this;
 
+if(title.substring(0, 1) != "$" && title.substring(0, 8) != "Draft of" ) {
+
 	// Issue HTTP request to delete the tiddler
 	$tw.utils.httpRequest({
-		url: "deleteTiddler.php?tiddler=" + encodeURIComponent(title),
-		type: "DELETE",
+		url: "deleteTiddler.php?tiddler="+ encodeURIComponent(title),
+		
 		callback: function(err,data,request) {
 			if(err) {
 				return callback(err);
@@ -113,6 +123,10 @@ phpsimplesync.prototype.deleteTiddler = function(title,callback,options) {
 			callback(null);
 		}
 	});
+	
+	} else {
+	  callback(null);
+	} 
 };
 
 /*
