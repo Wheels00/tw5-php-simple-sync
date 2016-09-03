@@ -4,7 +4,7 @@
 $putdata = fopen("php://input", "r");
 
 /* Open a file for writing */
-$fp = fopen($_GET["tiddler"]."tid" , "w");
+$fp = fopen(urlencode($_GET["tiddler"]).".tid" , "w");
 
 /* Read the data 1 KB at a time
    and write to the file */

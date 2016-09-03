@@ -57,7 +57,7 @@ Save a tiddler and invoke the callback with (err,adaptorInfo,revision)
 phpsimplesync.prototype.saveTiddler = function(tiddler,callback) {
 	var self = this;
 	$tw.utils.httpRequest({
-		url:  "saveTiddler.php?tiddler="+ encodeURIComponent(tiddler.title),
+		url:  "saveTiddler.php?tiddler="+ encodeURIComponent(tiddler.fields.title),
 		type: "PUT",
 		headers: {
 			"Content-type": "application/json"

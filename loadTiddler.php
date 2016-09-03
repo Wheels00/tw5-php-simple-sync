@@ -1,15 +1,11 @@
 <?php
 
-echo '
+$filename = urlencode($_GET["tiddler"]).".tid";
 
-[
-	{
-		"title": "First Tiddler",
-		"text": "Text of first tiddler",
-		"tags": "one two ",
-		"type": "text/vnd.tiddlywiki"
-	}
-]
-         '; 
+$handle = fopen($filename, "r");
+$contents = fread($handle, filesize($filename));
+fclose($handle);
+
+echo $contents;
 
 ?>
