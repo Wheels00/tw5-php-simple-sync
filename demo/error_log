@@ -1,2 +1,0 @@
-[04-Sep-2016 09:09:11 UTC] PHP Warning:  unlink(Draft+of+%27New+Tiddler+1%27.tid): No such file or directory in /home/mgbidau/public_html/phpsimplesync/deleteTiddler.php on line 5
-[04-Sep-2016 09:09:12 UTC] PHP Warning:  unlink(New+Tiddler+1.tid): No such file or directory in /home/mgbidau/public_html/phpsimplesync/deleteTiddler.php on line 5
