@@ -1,0 +1,8 @@
+{
+    "title": "$:/StoryList",
+    "text": "",
+    "fields": {
+        "list": "[[New Tiddler]] GettingStarted"
+    },
+    "type": "text/vnd.tiddlywiki"
+}
