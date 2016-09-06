@@ -123,6 +123,8 @@ Error message and password prompt
 
 <li>$:/core/modules/syncer.js</li>
 
+<li>$:/DefaultTiddlers</li>
+
 <li>$:/Import</li>
 
 <li>$:/isEncrypted</li>
@@ -136,6 +138,8 @@ Error message and password prompt
 <li>$:/state/tab/sidebar--1835078512</li>
 
 <li>$:/StoryList</li>
+
+<li>$:/temp/HidePluginWarning</li>
 
 <li>$:/temp/info-plugin</li>
 
@@ -8349,6 +8353,9 @@ exports.Syncer = Syncer;
 })();
 </pre>
 </div>
+<div created="20160905081112826" modified="20160906091418709" title="$:/DefaultTiddlers">
+<pre>[tag[a]] </pre>
+</div>
 <div status="complete" title="$:/Import">
 <pre>The following tiddlers were imported:
 
@@ -8358,7 +8365,7 @@ exports.Syncer = Syncer;
 <div title="$:/isEncrypted">
 <pre>no</pre>
 </div>
-<div created="20160902065959387" modified="20160905042719716" module-type="syncadaptor" plugin-type="plugin" title="$:/plugins/phpsimplesync/syncadaptor.js" type="application/javascript">
+<div created="20160902065959387" modified="20160906091309586" module-type="syncadaptor" plugin-type="plugin" title="$:/plugins/phpsimplesync/syncadaptor.js" type="application/javascript">
 <pre>/*\
 title: $:/plugins/phpsimplesync/syncadaptor.js
 type: application/javascript
@@ -8385,6 +8392,8 @@ phpsimplesync.prototype.getTiddlerInfo = function(tiddler) {
 };
 
 
+var firstSkinnyLoad = true; 
+
 /*
 Get an array of skinny tiddler fields from the server
 */
@@ -8408,6 +8417,21 @@ phpsimplesync.prototype.getSkinnyTiddlers = function(callback) {
                           
 			// Invoke the callback with the skinny tiddlers
 			callback(null,tiddlers);
+			
+			/// send tm-home if first skinny load
+			
+			if (firstSkinnyLoad) {	   
+			
+			   $tw.rootWidget.dispatchEvent({
+	         	type: &quot;tm-home&quot;
+               });
+               
+               
+			   firstSkinnyLoad = false; 
+			} 
+			
+			
+			
 		}
 	});
 };
@@ -8444,8 +8468,7 @@ Load a tiddler and invoke the callback with (err,tiddlerFields)
 */
 phpsimplesync.prototype.loadTiddler = function(title,callback) {
 	var self = this;
-
-
+	
 	$tw.utils.httpRequest({
 		url: &quot;loadTiddler.php?tiddler=&quot;+ encodeURIComponent(title),
 		callback: function(err,data,request) {
@@ -8458,8 +8481,6 @@ phpsimplesync.prototype.loadTiddler = function(title,callback) {
 			callback(null,self.convertTiddlerFromTiddlyWebFormat(JSON.parse(data)));
 		}
 	});
-
-
 };
 
 /*
@@ -8547,6 +8568,10 @@ phpsimplesync.prototype.convertTiddlerFromTiddlyWebFormat = function(tiddlerFiel
 };
 
 
+
+
+
+
 	exports.adaptorClass = phpsimplesync;
 
 
@@ -8556,14 +8581,17 @@ phpsimplesync.prototype.convertTiddlerFromTiddlyWebFormat = function(tiddlerFiel
 <div created="20160902065737757" modified="20160902065755268" title="$:/SiteTitle">
 <pre>Demo phpsimplesync</pre>
 </div>
-<div created="20160905042703670" modified="20160905043130544" title="$:/state/tab/moresidebar-401116514">
-<pre>$:/core/ui/MoreSideBar/Shadows</pre>
+<div created="20160905042703670" modified="20160905081147444" title="$:/state/tab/moresidebar-401116514">
+<pre>$:/core/ui/MoreSideBar/System</pre>
 </div>
-<div created="20160905042700531" modified="20160905042700531" title="$:/state/tab/sidebar--1835078512">
-<pre>$:/core/ui/SideBar/More</pre>
+<div created="20160905042700531" modified="20160906091434945" title="$:/state/tab/sidebar--1835078512">
+<pre>$:/core/ui/SideBar/Open</pre>
 </div>
-<div list="GettingStarted" title="$:/StoryList">
+<div list="" title="$:/StoryList">
 <pre></pre>
+</div>
+<div created="20160905081159190" modified="20160905081159190" title="$:/temp/HidePluginWarning">
+<pre>yes</pre>
 </div>
 <div plugin-type="info" title="$:/temp/info-plugin" type="application/json">
 <pre>{

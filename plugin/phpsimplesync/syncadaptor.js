@@ -24,6 +24,8 @@ phpsimplesync.prototype.getTiddlerInfo = function(tiddler) {
 };
 
 
+var firstSkinnyLoad = true; 
+
 /*
 Get an array of skinny tiddler fields from the server
 */
@@ -47,6 +49,21 @@ phpsimplesync.prototype.getSkinnyTiddlers = function(callback) {
                           
 			// Invoke the callback with the skinny tiddlers
 			callback(null,tiddlers);
+			
+			/// send tm-home if first skinny load
+			
+			if (firstSkinnyLoad) {	   
+			
+			   $tw.rootWidget.dispatchEvent({
+	         	type: "tm-home"
+               });
+               
+               
+			   firstSkinnyLoad = false; 
+			} 
+			
+			
+			
 		}
 	});
 };
@@ -181,6 +198,10 @@ phpsimplesync.prototype.convertTiddlerFromTiddlyWebFormat = function(tiddlerFiel
 	}
 	return result;
 };
+
+
+
+
 
 
 	exports.adaptorClass = phpsimplesync;
