@@ -8365,7 +8365,7 @@ exports.Syncer = Syncer;
 <div title="$:/isEncrypted">
 <pre>no</pre>
 </div>
-<div created="20160902065959387" modified="20160906091309586" module-type="syncadaptor" plugin-type="plugin" title="$:/plugins/phpsimplesync/syncadaptor.js" type="application/javascript">
+<div created="20160902065959387" modified="20160907021512097" module-type="syncadaptor" plugin-type="plugin" title="$:/plugins/phpsimplesync/syncadaptor.js" type="application/javascript">
 <pre>/*\
 title: $:/plugins/phpsimplesync/syncadaptor.js
 type: application/javascript
@@ -8442,6 +8442,11 @@ Save a tiddler and invoke the callback with (err,adaptorInfo,revision)
 phpsimplesync.prototype.saveTiddler = function(tiddler,callback) {
 	var self = this;
 	
+	if(tiddler.fields.nosync) {
+	  if (tiddler.fields.nosync = &quot;nosync&quot;) {
+	    return
+	  } 
+	} 
 	
 	$tw.utils.httpRequest({
 		url:  &quot;saveTiddler.php?tiddler=&quot;+ encodeURIComponent(tiddler.fields.title),
@@ -8584,8 +8589,8 @@ phpsimplesync.prototype.convertTiddlerFromTiddlyWebFormat = function(tiddlerFiel
 <div created="20160905042703670" modified="20160905081147444" title="$:/state/tab/moresidebar-401116514">
 <pre>$:/core/ui/MoreSideBar/System</pre>
 </div>
-<div created="20160905042700531" modified="20160906091434945" title="$:/state/tab/sidebar--1835078512">
-<pre>$:/core/ui/SideBar/Open</pre>
+<div created="20160905042700531" modified="20160907021501733" title="$:/state/tab/sidebar--1835078512">
+<pre>$:/core/ui/SideBar/More</pre>
 </div>
 <div list="" title="$:/StoryList">
 <pre></pre>
