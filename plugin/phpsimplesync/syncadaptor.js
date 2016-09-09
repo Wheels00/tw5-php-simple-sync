@@ -26,6 +26,10 @@ phpsimplesync.prototype.getTiddlerInfo = function(tiddler) {
 
 var firstSkinnyLoad = true; 
 
+var lastLoads = new Object(); 
+
+var lastSkinnyLoad = "Tue, 15 Nov 1994 08:12:31 GMT"
+
 /*
 Get an array of skinny tiddler fields from the server
 */
@@ -33,7 +37,16 @@ phpsimplesync.prototype.getSkinnyTiddlers = function(callback) {
 	var self = this;
 	$tw.utils.httpRequest({
 		url: "getSkinnyTiddlers.php",
+				headers: {
+		"If-Modified-Since": lastSkinnyLoad 
+		}, 
 		callback: function(err,data) {
+		   
+		    if(err=="XMLHttpRequest error code: 304") {
+		    return callback(null, []);
+		    
+		    } 
+		
 			// Check for errors
 			if(err) {
 				return callback(err);
@@ -62,6 +75,9 @@ phpsimplesync.prototype.getSkinnyTiddlers = function(callback) {
 			   firstSkinnyLoad = false; 
 			} 
 			
+			var now = new Date();
+			
+			lastSkinnyLoad = now.toUTCString();
 			
 			
 		}
@@ -73,6 +89,12 @@ Save a tiddler and invoke the callback with (err,adaptorInfo,revision)
 */
 phpsimplesync.prototype.saveTiddler = function(tiddler,callback) {
 	var self = this;
+	
+	
+	  if (tiddler.fields.nosync) {
+	    callback(null);
+	    return
+	  } 
 	
 	
 	$tw.utils.httpRequest({
@@ -101,9 +123,27 @@ Load a tiddler and invoke the callback with (err,tiddlerFields)
 phpsimplesync.prototype.loadTiddler = function(title,callback) {
 	var self = this;
 	
+	if (title == "$:/StoryList") {
+	    callback(null);
+	    	    return
+	  } 
+	  
+	  if(!lastLoads[title]) {
+	   lastLoads[title] = "Tue, 15 Nov 1994 08:12:31 GMT"; 
+	  } 
+	
 	$tw.utils.httpRequest({
 		url: "loadTiddler.php?tiddler="+ encodeURIComponent(title),
+		headers: {
+		"If-Modified-Since": lastLoads[title] 
+		}, 
 		callback: function(err,data,request) {
+		    
+		    if(err=="XMLHttpRequest error code: 304") {
+		    return callback(null);
+		    
+		    } 
+		
 			if(err) {
 				return callback(err);
 			}
@@ -111,6 +151,10 @@ phpsimplesync.prototype.loadTiddler = function(title,callback) {
                               
 			// Invoke the callback
 			callback(null,self.convertTiddlerFromTiddlyWebFormat(JSON.parse(data)));
+			
+			var now = new Date();
+			
+			lastLoads[title] = now.toUTCString();
 		}
 	});
 };

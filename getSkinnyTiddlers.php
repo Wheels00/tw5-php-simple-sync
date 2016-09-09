@@ -1,5 +1,7 @@
 <?php
 
+$mrtime = 0; 
+
 $output = '[ ' ; 
 
 $list = glob("*.tid");
@@ -10,6 +12,14 @@ foreach (glob("*.tid") as $filename) {
     $handle = fopen($filename, "r");
 $contents = fread($handle, filesize($filename));
 fclose($handle);
+
+
+
+$time = filemtime($filename);
+
+if ($time > $mrtime) {
+  $mrtime = $time;
+} 
 
 
 
@@ -35,6 +45,7 @@ $k = $k - 1;
 
 }
 
+header('Last-Modified: '.gmdate('D, d M Y H:i:s', $mrtime).' GMT');
 echo $output.' ]';
 
 
