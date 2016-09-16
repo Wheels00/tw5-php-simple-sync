@@ -10,6 +10,7 @@ $fp = fopen(urlencode($_GET["tiddler"]).".tid" , "w");
    and write to the file */
 while ($data = fread($putdata, 1024))
   fwrite($fp, $data);
+  
 
 /* Close the streams */
 fclose($fp);
