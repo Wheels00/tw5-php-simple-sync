@@ -39,13 +39,12 @@ if ($time > $mrtime) {
 
 
 
-$pattern = '/(,*\s)^\s+"text":.*$/m';
+$pattern = '/(,*\s*)^\s+"text":.*?(,*\s*)$/m';
 
-$contents = preg_replace($pattern, '$1', $contents);
+$contents = preg_replace($pattern, '$1"skinny": "skinny"$2', $contents);
 
-$pattern = '/("),(\s*\})/m';
 
-$contents = preg_replace($pattern, '$1$2', $contents);
+
 
 $output = $output.$contents;
 
