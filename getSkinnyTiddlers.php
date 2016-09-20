@@ -6,14 +6,15 @@ $output = '[ ' ;
 
 $list = glob("*.tid");
 
+$reqMSince = $_SERVER['HTTP_IF_MODIFIED_SINCE'];
+$reqMSince = (isset($reqMSince) ? strtotime($reqMSince) : NULL);
 
 
 $files = array();
 
 foreach (glob("*.tid") as $filename) {
-
-if (isset($_SERVER['HTTP_IF_MODIFIED_SINCE']) && 
-    strtotime($_SERVER['HTTP_IF_MODIFIED_SINCE']) < filemtime($filename))
+  
+if (!isset($reqMSince) || ($reqMSince < filemtime($filename)))
 {
 
 $files[] = $filename;
@@ -25,9 +26,13 @@ $files[] = $filename;
 $k = count($files); 
 
 foreach ($files as $filename) {
+  $fsize = filesize($filename);
+  $contents = '';
+  if ($fsize > 0) {
     $handle = fopen($filename, "r");
-$contents = fread($handle, filesize($filename));
+$contents = fread($handle, $fsize);
 fclose($handle);
+}
 
 
 
@@ -37,16 +42,9 @@ if ($time > $mrtime) {
   $mrtime = $time;
 } 
 
-
-
-$pattern = '/(,*\s*)^\s+"text":.*?(,*\s*)$/m';
-
-$contents = preg_replace($pattern, '$1"skinny": "skinny"$2', $contents);
-
-
-
-
-$output = $output.$contents;
+$jsonC = json_decode($contents, true);
+unset($jsonC['text']);
+$output = $output.json_encode($jsonC);
 
 if ($k > 1) {
 
@@ -64,8 +62,7 @@ $k = $k - 1;
 }
 
 
-if (isset($_SERVER['HTTP_IF_MODIFIED_SINCE']) && 
-    strtotime($_SERVER['HTTP_IF_MODIFIED_SINCE']) >= $mrtime)
+if (isset($reqMSince) && $reqMSince >= $mrtime) 
 {
     header('HTTP/1.0 304 Not Modified');
     exit;
