@@ -8394,6 +8394,12 @@ phpsimplesync.prototype.getTiddlerInfo = function(tiddler) {
 
 var firstSkinnyLoad = true; 
 
+var lastLoads = new Object(); 
+
+var lastSkinnyLoad = &quot;Tue, 15 Nov 1994 08:12:31 GMT&quot;
+
+var skippedDrafts = {};
+
 /*
 Get an array of skinny tiddler fields from the server
 */
@@ -8401,7 +8407,16 @@ phpsimplesync.prototype.getSkinnyTiddlers = function(callback) {
 	var self = this;
 	$tw.utils.httpRequest({
 		url: &quot;getSkinnyTiddlers.php&quot;,
+				headers: {
+		&quot;If-Modified-Since&quot;: lastSkinnyLoad 
+		}, 
 		callback: function(err,data) {
+		   
+		    if(err==&quot;XMLHttpRequest error code: 304&quot;) {
+		    return callback(null, []);
+		    
+		    } 
+		
 			// Check for errors
 			if(err) {
 				return callback(err);
@@ -8430,6 +8445,9 @@ phpsimplesync.prototype.getSkinnyTiddlers = function(callback) {
 			   firstSkinnyLoad = false; 
 			} 
 			
+			var now = new Date();
+			
+			lastSkinnyLoad = now.toUTCString();
 			
 			
 		}
@@ -8442,11 +8460,19 @@ Save a tiddler and invoke the callback with (err,adaptorInfo,revision)
 phpsimplesync.prototype.saveTiddler = function(tiddler,callback) {
 	var self = this;
 	
-	if(tiddler.fields.nosync) {
-	  if (tiddler.fields.nosync = &quot;nosync&quot;) {
-	    return
-	  } 
+	var isDraft = tiddler.fields[&quot;draft.of&quot;] != null;
+	
+  // Avoid saving StoryList and drafts
+  if (tiddler.fields.nosync || isDraft || tiddler.fields.title == &quot;$:/StoryList&quot;) {
+    // Remember drafts so we can skip deleting them
+    if (isDraft) {  	
+      skippedDrafts[tiddler.fields.title] = true;
+    }
+    
+	  callback(null);
+	  return
 	} 
+	
 	
 	$tw.utils.httpRequest({
 		url:  &quot;saveTiddler.php?tiddler=&quot;+ encodeURIComponent(tiddler.fields.title),
@@ -8474,9 +8500,27 @@ Load a tiddler and invoke the callback with (err,tiddlerFields)
 phpsimplesync.prototype.loadTiddler = function(title,callback) {
 	var self = this;
 	
+	if (title == &quot;$:/StoryList&quot;) {
+	    callback(null);
+	    	    return
+	  } 
+	  
+	  if(!lastLoads[title]) {
+	   lastLoads[title] = &quot;Tue, 15 Nov 1994 08:12:31 GMT&quot;; 
+	  } 
+	
 	$tw.utils.httpRequest({
 		url: &quot;loadTiddler.php?tiddler=&quot;+ encodeURIComponent(title),
+		headers: {
+		&quot;If-Modified-Since&quot;: lastLoads[title] 
+		}, 
 		callback: function(err,data,request) {
+		    
+		    if(err==&quot;XMLHttpRequest error code: 304&quot;) {
+		    return callback(null);
+		    
+		    } 
+		
 			if(err) {
 				return callback(err);
 			}
@@ -8484,6 +8528,10 @@ phpsimplesync.prototype.loadTiddler = function(title,callback) {
                               
 			// Invoke the callback
 			callback(null,self.convertTiddlerFromTiddlyWebFormat(JSON.parse(data)));
+			
+			var now = new Date();
+			
+			lastLoads[title] = now.toUTCString();
 		}
 	});
 };
@@ -8496,6 +8544,12 @@ tiddlerInfo: the syncer's tiddlerInfo for this tiddler
 phpsimplesync.prototype.deleteTiddler = function(title,callback,options) {
 	var self = this;
 
+	// Draft which was not saved does not have to be deleted
+  if (skippedDrafts[title]) {
+    delete skippedDrafts[title];
+    callback(null);
+    return
+  } 
 
 
 	// Issue HTTP request to delete the tiddler
