@@ -30,6 +30,8 @@ var lastLoads = new Object();
 
 var lastSkinnyLoad = "Tue, 15 Nov 1994 08:12:31 GMT"
 
+var skippedDrafts = {};
+
 /*
 Get an array of skinny tiddler fields from the server
 */
@@ -90,11 +92,18 @@ Save a tiddler and invoke the callback with (err,adaptorInfo,revision)
 phpsimplesync.prototype.saveTiddler = function(tiddler,callback) {
 	var self = this;
 	
+	var isDraft = tiddler.fields["draft.of"] != null;
 	
-	  if (tiddler.fields.nosync) {
-	    callback(null);
-	    return
-	  } 
+  // Avoid saving StoryList and drafts
+  if (tiddler.fields.nosync || isDraft || tiddler.fields.title == "$:/StoryList") {
+    // Remember drafts so we can skip deleting them
+    if (isDraft) {  	
+      skippedDrafts[tiddler.fields.title] = true;
+    }
+    
+	  callback(null);
+	  return
+	} 
 	
 	
 	$tw.utils.httpRequest({
@@ -167,6 +176,12 @@ tiddlerInfo: the syncer's tiddlerInfo for this tiddler
 phpsimplesync.prototype.deleteTiddler = function(title,callback,options) {
 	var self = this;
 
+	// Draft which was not saved does not have to be deleted
+  if (skippedDrafts[title]) {
+    delete skippedDrafts[title];
+    callback(null);
+    return
+  } 
 
 
 	// Issue HTTP request to delete the tiddler
