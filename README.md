@@ -29,11 +29,11 @@ That's it. No database back-end, python, or nodejs.
 
 ### Is it robust?
 
-No. I've used some very hacky regex to cobble this together
+Ummm. Improving (thanks to jtejkl's commits) but largly untested. 
 
 ### Is it secure?
 
-No. There is zero authentication in this version
+No. There is zero authentication in this version.
 
 ### Is it compatible with Tiddlywiki 5.1.13?
 
@@ -42,4 +42,12 @@ No, only 5.1.14
 ### How is it installed? 
 
 Copy the folder to a php-enabled web server. The syncadaptor is baked into the html file and expects all php scripts to be in the same directory. 
+
+## Wish list
+
+- cross-session browser caching
+- backups
+- nicer well commented code
+- config tiddler
+- lazy loading
 
