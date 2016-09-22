@@ -16,7 +16,8 @@ $handle = fopen($filename, "r");
 $contents = fread($handle, filesize($filename));
 fclose($handle);
 
-header('Last-Modified: '.gmdate('D, d M Y H:i:s', $time).' GMT');
+/// bug with body caching; temporarily disabling 
+// header('Last-Modified: '.gmdate('D, d M Y H:i:s', $time).' GMT');
 echo $contents;
 
 ?>
