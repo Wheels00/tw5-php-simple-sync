@@ -77,6 +77,8 @@ phpsimplesync.prototype.getSkinnyTiddlers = function(callback) {
 			   firstSkinnyLoad = false; 
 			} 
 			
+			// record time of skinny tiddlers http request 
+			
 			var now = new Date();
 			
 			lastSkinnyLoad = now.toUTCString();
@@ -94,7 +96,7 @@ phpsimplesync.prototype.saveTiddler = function(tiddler,callback) {
 	
 	var isDraft = tiddler.fields["draft.of"] != null;
 	
-  // Avoid saving StoryList and drafts
+  // Avoid saving StoryList, drafts, and tiddlers with a nosync field
   if (tiddler.fields.nosync || isDraft || tiddler.fields.title == "$:/StoryList") {
     // Remember drafts so we can skip deleting them
     if (isDraft) {  	
@@ -132,21 +134,21 @@ Load a tiddler and invoke the callback with (err,tiddlerFields)
 phpsimplesync.prototype.loadTiddler = function(title,callback) {
 	var self = this;
 	
-	if (title == "$:/StoryList") {
+	
+	if (title == "$:/StoryList") { // there shouldn't be br a StoryList on the server, but ignore if there is
 	    callback(null);
 	    	    return
 	  } 
 	  
-	  if(!lastLoads[title]) {
-	   lastLoads[title] = "Tue, 15 Nov 1994 08:12:31 GMT"; 
-	  } 
 	
 	$tw.utils.httpRequest({
 		url: "loadTiddler.php?tiddler="+ encodeURIComponent(title),
-		headers: {
-		"If-Modified-Since": lastLoads[title] 
-		}, 
+		// headers: {
+		// Don't set a an if-modified-since header; let the browser set it based on the browser cache
+		// }, 
 		callback: function(err,data,request) {
+		    
+		    // 
 		    
 		    if(err=="XMLHttpRequest error code: 304") {
 		    return callback(null);
@@ -161,11 +163,13 @@ phpsimplesync.prototype.loadTiddler = function(title,callback) {
 			// Invoke the callback
 			callback(null,self.convertTiddlerFromTiddlyWebFormat(JSON.parse(data)));
 			
-			var now = new Date();
 			
-			lastLoads[title] = now.toUTCString();
 		}
 	});
+	
+	var now = new Date();
+			
+	lastLoads[title] = now.toUTCString();
 };
 
 /*
@@ -201,7 +205,7 @@ phpsimplesync.prototype.deleteTiddler = function(title,callback,options) {
 };
 
 /*
-Convert a tiddler to a field set suitable for PUTting to TiddlyWeb
+Convert a tiddler to a field set suitable for PUTting to server
 */
 phpsimplesync.prototype.convertTiddlerToTiddlyWebFormat = function(tiddler) {
 	var result = {},
